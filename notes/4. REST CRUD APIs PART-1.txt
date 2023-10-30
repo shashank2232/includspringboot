@@ -1,0 +1,224 @@
+NOTE : VVVIMP
+We can have many controllers we need, its just we need to make them appropriately eg. Product Controller will have all mappings 
+and methods related to Products. Student controller will have each thing about Student only etc. Behind the scenes when there r many CONTROLLERS, 
+our app mainly sees the url mapped with controller and the url decides to go on what controller its linked with. Controllers in bts are saved as
+HASHMAPS.
+
+What we'll build:
+Build a client app that provides weather report for a city, need to get weather data from API(external service).
+              MY WEATHER           ---->(CITY)   WEATHER 
+              APP(WEATHER REPORT)  <----        SERVICE(EXTERNAL)
+Q1. How will we get weather data?
+To connect to weather service, we'll make REST API calls over HTTP. API provides by: openweathermap.org
+
+Q2. What is REST?
+REST(Representational State Transfer) is a easy approach for communicating between apps.
+REST is language-independent. So, the client app can use any programming language and even the server language can use any progtramming language.
+This provides FLEXIBILITY.
+
+Q3. What is data format?
+Commonly XML or JSON. JSON is most popular.
+
+Nice thing about REST SERVICE is that the weather service simply provide data feed(external service), and different types of clients can access them.
+A client app made using java can also access, an app made using C# can also access it, an ios app made using Swift can also access it.
+
+MORE ON REST SERVICES:
+We can create a currency converter app which goes to currency api and converts us dollars to inr. Our app can use external service.
+CRM APP -> Customer Relationship Management App , and we have a CRM service, like app can access all customers from it.
+
+CRM APP ---->(get all customers) CRM SERVICE(Spring Rest)  ---->(gives all customers) CRM APP (json form data)
+App can be a web app or a mobile app too.
+
+NOTE: There are many names: REST API , RESTful API, REST Web Services, RESTful Web Services, REST Services, RESTful Services
+These all mean same, building a service and providing data based on inputs/requests.
+
+-> JSON BASICS
+Javascript Object Notation is lightweight data format for storing and exchanging data (plain text), JSON is language independent(can be used with any language).
+Eg. {"id":1, "firstName":"Shashank", "lastName":"Mishra", "age":23, "active":true}
+NAME VALUE PAIR , NAME should always be in " "
+
+JSON VALUES:
+1.numbers: no quotes   2.String:double qoutes   3.Boolean:true/false   4.Nested JSON object   5.Array   6.null
+
+NESTED JSON OBJECTS:
+{"id":1, "firstName":"Shashank", "lastName":"Mishra", "age":23, "active":true,
+  "address":{ "street":"100 main street", "city":"Delhi", "country":"India"}
+}
+
+JSON ARRAYS:
+{"id":1, "firstName":"Shashank", "lastName":"Mishra", "age":23, "languages":["Java","C#","Python","Javascript"]}
+
+-> REST HTTP Basics
+Most common use of REST is over HTTP.
+POST : create a new entity,  GET : read a list/single entity,   PUT:updating an entity,   DELETE:deleting an entity
+
+     MY CRM    ----->(HTTP REQUEST message)  ---> SERVER(CRM REST
+      APP      <-----(HTTP RESPONSE message) <---  Service)
+
+3 main components of HTTP REQUEST MESSAGE:
+(1)Request Line: contains the HTTP(get or post or put or delete) method
+(2)Header Variables: request metadata i.e. additional metadata of this request
+(3)Message Body: contents of message
+
+3 main components of HTTP RESPONSE MESSAGE:
+(1)Response Line: server protocol and status code(200 or 404 or 500 etc)
+(2)Header Variables: response metadata like type of data(xml or json), size of data
+(2)Message Body: contents of message
+
+STATUS CODES:
+100 - 199  (Informational)
+200 - 299  (SUCCESS)
+300 - 399  (Redirection)
+400 - 499  (Client Error)   eg. 401(authentication required)  404(file not found)
+500 - 599  (Server Error)   eg. 500(internal server error)
+
+POSTMAN  is a client tool used to send HTTP requests to REST web service/API. Top of postman will have HTTP request and bottom will have HTTP response.
+https://jsonplaceholder.typicode.com/   -> this site has urls we can access for some REST services
+Eg.  https://jsonplaceholder.typicode.com/users  -> when we send this request in postman using get method, we get all users
+
+-> SpringBoot REST Controller
+            REST       ---> (/test/hello) --->  REST
+           CLIENT      <--- (HELLO WORLD) <-- SERVICE
+
+We'll make Rest service using our code, Rest client will either be our browser or POSTMAN.
+@RestController : adds the REST Support.
+1. @RequestMapping with Class: We can use it with class definition to create the base URI.
+Eg. @RestController
+@RequestMapping("/home")
+public class HomeController {
+
+}
+
+2. @RequestMapping with Method: We can use it with method to provide the URI pattern for which handler method will be used.
+@RequestMapping(value="/method0")
+@ResponseBody
+public String method0(){
+	return "method0";
+}
+
+CODE:
+@RestController
+@RequestMapping("/test")
+public class DemoRestController{
+   @GetMapping("/hello")              // access REST endpoint at /test/hello
+   public String sayHello(){
+    return "Hello World";
+   }
+}
+// In Postman, drop url http://localhost:8080/spring-rest-demo/test/hello : when we use get request, this gives Hello World.
+// same can be done on browser
+
+-> Java JSON Data Binding
+DATA BINDING is process of converting JSON data to a java POJO OR we can give a java pojo and make it to a json file/string.
+Also called MAPPING OR Serialization/Deserialization i.e. converting json to java pojo OR converting java pojo to json.
+
+(1) JSON TO JAVA POJO (use SETTER methods)
+Call setter methods on pojo.
+Code:
+JSON -> {"id":14, "firstName":"Shashank", "lastName":"Mishra", "active":true}
+Java Pojo -> in class Student, there will be setter methods for each field (id, firstName, lastName, active)
+
+NOTE: Jackson calls the setter methods, it doesnt access private fields directly on pojo, for tha it uses setter methods.
+
+(2) JAVA POJO TO JSON (use GETTER methods)
+NOTE: Any json data passed to REST Controller is auto converted to POJO, also Java object returned from REST Controller is auto converted to JSON.
+
+-> Here we'll manually create data of students list in our controller.
+NOTE: When we send request and get response in form of json, converting data to json or json to java pojo is all done by JACKSON.
+JACKSON converts java object to JSON and shows us.
+REST Client makes call with api endpoint( /api/student/{studentId} ) to SPRING REST JACKSON , then Jackson makes call to REST Service, REST service returns
+the student, JACKSON converts student pojo to JSON and sends back to REST CLIENT in form of JSON.
+
+-> Springboot REST Path variables
+To get individual student based on their ID. student id will be in curly braces and its known as PATH VARIABLE.
+Eg. /api/students/{studentId}
+NOTE: If we enter BAD DATA lets say studentId as 100 and it doesnt exist, we'll get 500 INTERNAL SERVER ERROR.
+EXCEPTION -> IndexOutOfBoundsException
+
+-> EXCEPTION HANDLING
+Bad data passed by us leads to ugly EXCEPTION. We want to handle the exception and return/show error as JSON.
+Eg. {"status":404, "message":"Student id not found - 100", "timeStamp":15261496}
+REST Client sends/requests for some bad data to REST SERVICE, Rest Service handles the EXCEPTION and sends back exception error message as JSON format.
+
+NOTE: super used as a constructor in a class calls the super-class constructor i.e. class which our class is inheriting.
+We'll create our custom class for handling exception i.e.StudentNotFoundException class which will extend RunTimeException class.
+If studentId will be good then we'll send student object , but if bad data given simply exception will b thrown.
+Now comes ExceptionHandler , who will handle the exception and how we'll give json data back to client.
+Add ExceptionHandler method for this. It will return a ResponseEntity.
+
+ResponseEntity represents the whole HTTP response: status code, headers, and body. As a result, we can use it to fully configure the HTTP response.
+ResponseEntity provides control to specify :
+(1)HTTP status code  (2)HTTP headers  (3)Response body
+
+ADDING EXCEPTION HANDLER METHOD:
+@ExceptionHandler                   // tells this method is an exception handler method
+public ResponseEntity<StudentErrorResponse> handleException(StudentNotFoundException exc){
+         StudentErrorResponse error = new StudentErrorResponse();              // this has fields like status, message & timestamp
+         error.setStatus(HttpStatus.Not_FOUND.value());
+         error.setMessage(exc.getMessage());
+         error.setTimeStamp(System.currentTimeMillis());
+         return new ResponseEntity<>(error, HttpStatus.Not_FOUND); 
+// when we return ResponseEntity, we give 2 things i.e. error(in our case we created custom error) and status_code, and then JACKSON is responsible
+// to convert actual body to JSON 
+}
+// ResponseEntity<StudentErrorResponse> this specifies type of response body i.e. type of data we'll pass back in response body
+// StudentNotFoundException exc  this tells these r type of exceptions we need to handle i.e. any StudentNotFoundException thrown will be handled by
+// this exception handler method
+
+NOTE: StudentNotFoundException is made to display message in the place where we see the data, whereas StudentErrorResponse is made to display the 
+the status code along with timestamp and messgae.
+
+Some EDGE CASES:
+in case of giving studentId we handled exceptions when user gives wrong data but that was only when he gave numbers, if user gives some text for studentId
+we also need to handle that i.e. MethodArgumentTypeMismatchException.
+
+-> GLOBAL EXCEPTION HANDLING
+We wrote code to handle exceptions using @ExceptionHandler which passes back exception as JSON data.
+Problem is exceptionhandler is only for specific REST Controller. It can't be reused by other controllers(in case of large projects we have 
+multiple rest controllers).
+GLOBAL EXCEPTION HANDLERS : promotes re-use, centralizes exception handling, minimizes amount of code for multiple controllers on very large projects.
+@ControllerAdvice : used to preprocess requests to controllers , used to post process responses to handle exceptions & also perfect for GLOBAL
+                    EXCEPTION HANDLING.
+@ControllerAdvice allows you to handle exceptions across the whole application, not just to an individual controller.
+
+REST CLIENT sends request to REST SERVICE, then REST Service throws exception, they are handled and send back data as JSON response.
+Global Exception Handlers are best way to use.
+
+-> REST API DESIGN
+(1)Review API requirements.
+(2)Identify main resource.
+(3)Use HTTP methods to assign action on resource.
+Eg. Create REST API for employee directory to:
+Get list of all employees, Get a single employee by id, Add new employee, Update employee, Delete employee
+
+POST -> /api/employees ,  GET -> /api/employees  , GET -> /api/employees/{employeeId}   ,  PUT -> /api/employees{employeeId}  , DELETE -> /api/employees/{employeeId}   
+
+-> More API Examples
+PayPal : provides invoicing api , GITHUB : provides api for repositories , Salesforce too provides apis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

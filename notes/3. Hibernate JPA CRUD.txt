@@ -1,0 +1,193 @@
+HIBERNATE (implementation of jpa)
+Hibernate is a framework for saving java objects in database. Very popular framework.
+Used to save & retrieve data from database. Hibernate handles all low level SQL code, minimize amount of JDBC(java database connectivity) code
+you have to develop. Hibernate provides ORM(object relational mapping), makes very easy to store & retrieve objects from database.
+ORM -> As a developer we just need to tell hibernate how our java class & object maps to data in database.
+Java class will b mapped to a database table. It'll b done using java annotations.
+
+JPA -> Java Persistence API is a standard api for object relational mapping, defines a set of interfaces.
+Hibernate is most popular implementation of JPA.
+Benefits of JPA : Not locked to vendor's implementation, Maintain flexible code, Can switch vendor implementations eg. if vendor A stops supporting 
+product, we can switch to B without any vendor lock-in because we're coding to actual JPA specification/standard api.
+
+SAVING A JAVA OBJECT WITH JPA:
+Student student = new Student("Shashank","Mishra",shashank@gmail.com);
+entityManagaer.persist(student);           // saving object to database
+ NOTE: entityManager is a special JPA helper object, JPA takes the java object and store in appropriate table.
+Since hibernate is implementation of jpa, hibernate does all this work for us.
+
+RETRIEVING JAVA OBJECT WITH JPA:
+Student student = new Student("Shashank","Mishra",shashank@gmail.com);
+entityManagaer.persist(student);
+// retrieving data from database using primary key
+int id = 1;
+Student myStudent = entityManager.find(Student.class,id);
+// JPA goes to look for Student table and finds the id
+
+Q. How does Hibernate/JPA relate to JDBC?
+Ans. Hibernate/JPA uses JDBC for all database communications.
+Your app will store and retrieve the objects using jpa api.
+
+-> MYSQL includes 2 components:
+(1)Mysql database server: main engine of database, stores data for database, supports CRUD features on data 
+(2)Mysql Workbench: client gui for interacting with database, create database and tables, use sql queries and get data, perform insert&delete on data
+
+-> JPA ANNOTATIONS
+ENTITY CLASS -> java class mapped to database table, annotated with @Entity, also must have a public/protected no-arg constructor
+We know in java class, if we dont declare a constructor, then java provides a no-arg constructor for free.
+
+MAPPING CLASS TO DB TABLE: @Table(name="student")
+student is db table name we're mapping our class with
+
+MAPPING FIELDS WITH DB COLUMNS:
+@Id
+@Column(name="id")
+private int id;
+// id is name of actual database column
+
+@Column(name="first_name")
+private String firstName;
+
+NOTE: @Column annotation is optional, i.e. if we dont provide column name, column name will be same name as the java field. But it should be avoided.
+@Table annotation is also optional, if we dont provide table name, our db table name will be same as our class name. This is also must avoided.
+
+PRIMARY KEY -> uniquely identifies each row in a table, must have a unique value, can't contain null values. We can also use auto_increment it.
+Mysql will behind the scenes will keep track of automatically incrementing this id and will make sure its unique value.
+CODE:
+@Id
+@GeneratedValue(startegy=GenerationType.IDENTITY)            // this means id value will b generated & managed by database
+@Column
+
+More on id generated strategies:
+GenerationType.AUTO = pick an appro strategy for particular database
+GenerationType.IDENTITY = assign primary keys using database identity column (MOSTLY USED)
+GenerationType.SEQUENCE = assign primary keys using a database sequence
+GenerationType.TABLE = assign primary keys using database table to ensure uniqueness
+
+We can also define our own custom generation type for generating our id.
+STEP 1 -> Create implementation of  org.hibernate.id.IdentifierGenerator
+STEP 2 -> Override the method : public Serializable generate(...)
+
+NOTE: In ENTITY class, we can either generate constructor, getters and setters, and a toString() method OR to reduce our code we can use @Lombok.
+Using @Lombok helps us avoid a lot of lines of code like constructor, getters setters, toString().
+
+METHODS IN DATA ACCESS OBJECT:
+save() , findById(), findAll(), findByLastName(), update(), delete(), deleteAll()
+
+JPA entity manager is for saving/retrieving entities.
+
+-> @Transactional : automatically begin and end a transaction for ur jpa code, we use it when update on database is required, saving/storing
+object in database.
+@Transactional annotation. This will ensure that the transaction should be complete. That is, either both employee and 
+address data should be stored or nothing will get stored.
+
+if a user has entered his information the user’s information gets stored in the user_info table. 
+Now, to book a ticket he does an online payment and due to some reason(system failure) the payment has been canceled so, 
+the ticket is not booked for him. But, the problem is that his information gets stored on the user_info table. On a large scale, 
+more than thousands of these things happen within a single day. So, it is not good practice to store a single action of the transaction
+(Here, only user info is stored not the payment info).
+To overcome these problems, spring provides transaction management, which uses annotation to handle these issues. 
+In such a scenario, spring stores the user information in temporary memory and then checks for payment information if the payment 
+is successful then it will complete the transaction otherwise it will roll back the transaction and the user information does not 
+gets stored in the database.
+
+-> @Repository : a sub annotation of @Component, to annotate DAO.
+
+-> Changing index of mysql auto-increment
+Suppose we want to start increment from 100
+Query -> alter table student_tracker.student auto-increment=100;
+NOTE: student_tracker is database name and student is table name , so now
+
+Q. How do i reset auto increment values back to 1?
+Ans. using TRUNCATE, this will remove data from database and reset auto-increment to start at 1.
+Query -> truncate student_tracker.student
+
+-> Reading Objects with JPA
+Finding student by giving a primary key say 1, and if cant find student via its primary key, simply return NULL.
+
+-> Querying Objects with JPA
+JPQL(JPA Query Language) : a query language for retrieving objects, similar to sql.
+All JPQL syntax is based on entity name & entity fields, not the database name and database columns.
+Query to get list of all students : getResultList()
+
+JPQL Query to get all students:  
+// here Student is not name of database table, all jpql syntax is based on entity name and entity fields
+TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student", Student.class);    
+List<Student> students = theQuery.getResultList();
+
+JPQL Query to get students with lastName='Doe':  
+// lastName is field of JPA Entity i.e. not using database column name but jpa entity fieldname
+TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student WHERE lastName='Doe'", Student.class);    
+List<Student> students = theQuery.getResultList();
+
+Using OR predicate:
+TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student WHERE lastName='Doe' OR firstName='Daffy'", Student.class);    
+List<Student> students = theQuery.getResultList();
+
+Using LIKE predicate:
+TypedQuery<Student> theQuery = entityManager.createQuery("FROM Student WHERE email LIKE 'shashank@gmail.com'", Student.class);    
+List<Student> students = theQuery.getResultList();
+
+JPQL NAMED PARAMETERS:
+lastName = :theData
+// this is a jpql named parameter prefixed with a colon
+
+-> UPDATING OBJECTS WITH JPA
+First find the object, then simply call setter method on object to change their value.
+Then do entityManager.merge  which tells entityManager to update the object.
+Here we'll use @Transactional as we're updating the database.
+PROCESS: retrieve the student based on id and store it, then do the change , finally display the change done.
+
+-> DELETING OBJECTS
+Retrieve student, delete student. Here we'll use @Transactional as we're updating the database.
+We can delete multiple students based on a condition:
+int numRowsDeleted = entityManager.createQuery("DELETE FROM Student WHERE lastName='Singh'").executeUpdate();
+// will delete all students with lastName = 'Singh' , numRowsDeleted denotes total rows deleted
+NOTE: While performing delete, we're doing executeUpdate , see update in only a generic term which tells that we're modifying the database.
+
+TO DELETE ALL STUDENTS FROM DB:
+int numRowsDeleted = entityManager.createQuery("DELETE FROM Student").executeUpdate();
+
+-> CREATING DATABASE TABLES FROM JAVA CODE
+Earlier we created database tables by running a sql script. But HIBERNATE provides an option to automatically create db tables.
+It'll create tables based on java code with JPA/Hibernate annotations. Very useful for development & testing.
+
+JAVA CODE(ANNOTATIONS) -> HIBERNATE -> GENERATE SQL QUERY -> APPLY ON DB
+Hence no need to write any sql code ourselves.
+
+In app.pro file : 
+spring.jpa.hibernate.ddl-auto = create
+// when u run ur app, hibernate will drop/delete the tables & create them from scratch.
+// all based on jpa/hibernate annotations in ur java code
+
+More property values:
+spring.jpa.hibernate.ddl-auto=none              (no action will b performed)
+spring.jpa.hibernate.ddl-auto=create-only       (database tables r only created)
+spring.jpa.hibernate.ddl-auto=drop              (database tables are dropped,all data is lost)
+spring.jpa.hibernate.ddl-auto=create            (first database tables are dropped, then tables r again created from scratch)  MOSTLY USED 
+spring.jpa.hibernate.ddl-auto=create-drop       (first database tables are dropped, then tables r again created from scratch, when app shuts down it'll drop the table)
+spring.jpa.hibernate.ddl-auto=validate          (validate db tables)
+spring.jpa.hibernate.ddl-auto=update            (update db tables)
+
+NOTE: when db tables are dropped, all data is lost.
+If u want to create tables once and keep updating them, use update because old data wont be lost. Auto-generation of database and tables aren't recommended for enterprises and real-time
+projects, because u can delete all data if u aren't careful. Hence use SQL SCRIPTS.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

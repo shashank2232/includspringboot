@@ -1,0 +1,36 @@
+SPRING SECURITY MODEL
+Spring security defines a framework for security, its implemented using servlet filters in background.
+2 methods : declarative & programmatic
+
+Spring Security with Servlet Filters :
+Servlet filters r used to pre-process/post-process web requests.
+Servlet filters can route web requests based on security logic.
+Spring provides a bulk of security functionality with servlet filters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

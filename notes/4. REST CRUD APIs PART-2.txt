@@ -1,0 +1,175 @@
+SEE VIDEO 132 AGAIN.
+
+-> Employees REST API Project
+REST Clients should be able to:
+(1)Get list of all employees  (2)Get a single employee by id  (3)Add a new employee  (4)Update an employee   (5)Delete an employee
+
+-> Springboot REST DAO
+EntityManager is auto-created by springboot.
+
+GETTING LIST OF EMPLOYEES:
+We'll use JPA API, then we create JPQL query for all list of employees.
+Then we execute query and get result list.
+
+Till now, we have entity class with all mappings to database table and columns, we have our DAO package with interface and class(having implementation
+of methods of interface), we have controller injecting EmployeeDAO interface and using its methods for CRUD operations.
+Now we'll make SERVICE LAYER. This layer will sit between controller & DAO. Service layer is layer for custom business logic, we can integrate data from 
+multiple sources(DAO/repositories).  NOTE: 120 SEE AGAIN
+Eg. we have our employee service and we need to pull in data about employee from different types of data sources.
+Employee DAO will have basic info like firstName, lastName, email.
+SkillsDAO can have skills of employee. Payroll DAO can have salary info of employee.
+Then we provide controller with a single view of data that we integrated from multiple backend datasources.
+
+EMPLOYEE REST CONTROLLER  <---> EMPLOYEE SERVICE  <---> EMPLOYEE DAO <--> DATABASE
+// This architecture is mostly used in most enterprises.
+
+@Service -> applied to service implementations,specialized annotation for services
+Because of component scanning, spring will automatically register service implementation.
+the business logic resides within the service layer so we use the @Service Annotation to indicate that a class belongs to that layer. 
+It is also a specialization of @Component Annotation like the @Repository Annotation. One most important thing about the @Service Annotation is
+ it can be applied only to classes. It is used to mark the class as a service provider. So overall @Service annotation is used with classes that 
+provide some business functionalities.
+
+DIFFERENCE BTW SERVICE LAYER AND DAO:
+
+DAO basically consists of your lightweight code where we can connect to DB or get the data from the DB. 
+In the services layer, we write business logic and business validations.
+DAO is as light as possible and exists solely to provide a connection to the DB, sometimes abstracted so different DB backends can be used.
+The service layer is there to provide logic to operate on the data sent to and from the DAO and the client.
+DAO should perform raw database operations and translate them to some higher level constructs (objects, collections). 
+Services should call DAOs and perform business operations.
+
+We should apply transactional boundaries at Service layer. Its service layer's responsibility to manage transaction boundaries.
+Apply @Transactional on Service methods instead of DAO methods.
+
+Using DAO for methods:
+finding by id using entityManager
+add/update -> Employee dbemployee = entityManager.merge(theEmployee) : performs save/update on id
+              return dbemployee;           //dbemployee has updated id from database 
+if id==0, save/update to db  else update
+
+delete -> .remove
+
+-> Adding new Employee
+Employee will b added using employeeId, employee data will come in request body as json.
+@RequestBody : The @RequestBody annotation is applicable to handler methods of Spring controllers. 
+      This annotation indicates that Spring should deserialize a request body into an object. This object is passed as a handler method parameter.
+
+-> UPDATE
+we'll give id too as to tell it which employee to update
+
+-> Spring Data JPA
+Till now we were using standard JPA API.
+We created DAO for an entity with methods & implementation. But problem is what if we need DAO for another entity ?
+Eg. Customer,Product,Book etc.
+Solution : We just give entity type eg. Employee & primary key type eg. Integer. And now we should get all CRUD methods to perform like
+findAll(), findById(), save(), deleteById() etc. In case we have another entity type Customer and its primary key Integer, we'll get the same. 
+
+SPRNG DATA JPA -> just create a DAO and plug in ur entity type & primary key type, then spring will give CRUD implementation. 
+This helps us minimize our boiler-plate DAO code(avoids a lot of code lines by this).
+
+Spring Data JPA provides an interface called JpaRepository. Gives us methods like findAll(), findById(), save(), deleteById() etc. 
+Simply extend JpaRepository interface and use it where u need.
+Eg. public interface EmployeeRepository extends JpaRepository<Employee, Integer>
+// here Employee is entity and Integer is type of primary key
+For more goto site -> https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html
+Service layer uses JpaRepository to use/get all crud methods.
+
+Before SPRING DATA JPA : we made interface EmployeeDAO with all methods defined and a class with their implementation, too much code lines.
+After SPRING DATA JPA : just create EmployeeRepository implementing JpaRepo with entity type and primary key type, all lines of code saved.
+
+ADVANCED FEATURES OF SPRING DATA JPA:
+(1) Extend and add custom queries with JPQL.
+(2) They have a Query Domain Specific Language
+(3) We can also define custom methods by ourself. ( https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.query-methods.details )
+
+NOTE: While using JpaRepository in our service layer, no need to use @Transactional with methods doing changes in database, because JpaRepository
+provides this itself.
+
+-> SPRING DATA REST
+We saw how to create REST API for Employee. What if we need REST API for another entity like Product or Customer, repeat all code again?
+SPRING DATA REST is solution, uses JpaRepository. Spring will give us REST CRUD implementation.
+Helps to minimize boiler-plate rest code.
+
+Working : Spring data REST scans ur project for JpaRepo, then exposes REST APIs for each entity type for ur JpaRepo.
+By default, spring data REST will create endpoints based on entity type.
+Eg. for entity Employee , endpoints by default will be  /employees .
+
+Process : Add spring data REST to maven pom file.
+
+Before using Spring Data REST: we had REST Controller, Service interface and its impl class
+     Employee REST Controller <---> Employee Service <---> Employee Repo <--> DB
+
+After using Spring Data REST: all endpoints exposed for free without any code, no need of REST Controller, Service interface and its impl class
+     Spring Data REST(/employees) <--> Employee Repo(Spring Data REST) <--> DB
+// they will provide /employees endpoints for free, no longer need of REST Controller & Service layer.
+// also gives meta-data info about the page  (HATEOAS)
+
+Spring Data REST ADVANCE FEATURES:
+(1) pagination, searching, sorting
+(2) extending/adding JPQL queries
+(3) Query DSL
+
+Spring Data REST scans JpaRepo and gives us endpoints for free.
+
+DEPENDENCY FOR SPRING DATA REST : 
+                <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-rest</artifactId>
+		</dependency>
+
+GET -> localhost:8080/api/employees (gives all employees)
+GET -> localhost:8080/api/employees/2 (gives employee by id 2)
+POST -> localhost:8080/api/employees (give data in body json except id as id is auto generated)
+PUT -> localhost:8080/api/employees/3  (no need to pass id in json body like we did prev, spring data REST uses id on url)
+DELETE -> localhost:8080/api/employees/4 (will delete employee with id 4) (no data will come in response body with spring data rest, it'll b deleted)
+
+SPRING-DATA-REST ends need of 3 files(rest controller, service interface, service class impl)
+
+-> Spring Data REST : Configs, Pagination, Sorting
+PROBLEM -> Spring data REST doesn't handle complex pluralized forms. Eg. Person People , Goose Geese
+We need to manually specify plural name.
+Eg. instead of /employees we want to use /members
+Solution : specify name with path annotation 
+@RepositoryRestResource(path = "members")
+public interface EmployeeRepository extends JpaRepository<Employee, Integer>{}
+
+PAGINATION : navigating on different pages
+By default, spring data rest returns first 20 elements. We can navigate on different pages using query param:
+localhost:8080/employees?page=0
+localhost:8080/employees?page=1
+NOTE: Pages are 0-based.
+
+More properties available(for app.pro)
+(1) spring.data.rest.base-path : base path used to expose repo resources
+(2) spring.data.rest.default.page-size = 50 : default size of pages , returns 50 elements per page
+(3) spring.data.rest.max-page-size : maximum size of pages
+
+https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties
+
+-> SORTING
+You can sort by property names of ur entity.
+
+IN POSTMAN:
+Sorting by lastName(ascending is default) = localhost:8080/employees?sort=lastName
+Sorting by firstName, descending = localhost:8080/employees?sort=firstName,desc
+Sorting lastName, firstName acsending = localhost:8080/employees?sort=lastName,firstName,asc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,125 @@
+Spring is very popular framework for building java applications. It provides a large number of helper classes & annotations.
+Problem is building a traditional Spring app is very hard eg. dont know which jar dependencies we need, how to setup configuration(xml or java),
+how do i install server(tomcat)....
+Solution -> SPRINGBOOT
+It makes Spring development easier, minimize amount of manual configuration, helps to resolve dependency conflicts(maven or gradle),
+performs auto-config based on JAR classpath, provide an embedded HTTP server eg. Tomcat.
+
+Springboot uses Spring, Spring is a lightweight framework. It can be thought of as a framework of frameworks because it 
+provides support to various frameworks such as Struts, Hibernate, Tapestry, EJB, JSF, etc.
+
+SPRING Initializr -> quickly create a starter springboot project, select ur dependencies, create a maven project and simply import it.
+Springboot provides HTTP server such as Tomcat server, no need to install server separately.
+
+Springboot helps making standalone apps(a software program designed in such a way that to run this software program, 
+users don't need an internet connection or any server access).
+We can run springboot app via ide or command line.
+
+DEPLOYING Springboot apps:
+Deploy WAR file to an external server like Tomcat,Jboss etc.
+
+NOTE: Springboot doesnt replace Spring Core,Spring MVC, Spring REST instead Springboot uses them in background.
+
+-> Spring Initializr
+quickly create a starter springboot project, select ur dependencies, create a maven project and simply import it.
+Springboot provides HTTP server such as Tomcat server, no need to install server separately.
+
+MAVEN : when building your java project you may need additional JAR files like Spring, Hibernate, JSON...
+One approach is download JAR files from each project website and then manually add JAR files to your build path.
+But MAVEN provides a good solution, we simply tell maven the dependencies and MAVEN will download those JAR files in ur project.
+
+Springboot automatically includes an embedded server TOMCAT.
+
+-> REST CONTROLLER
+@RestController is a specialized version of the controller. It includes the @Controller and @ResponseBody annotations.
+CODE: 
+@RestController
+public class FunRestController {
+
+    @GetMapping("/")
+    public String sayHello(){
+        return "Hello World";
+    }
+}
+// when we goto localhost:8080 "Hello World" shown
+
+-> Overview of SPRING
+Site -> www.spring.io
+Goals of Spring: lightweight dev with java pojo(plain old java objects) , dependency injection for loose coupling (Loose coupling is an approach to 
+interconnecting the components in a system, network or software application so that those components, also called elements, 
+depend on each other to the least extent practicable.) and minimize java oilerplate code.
+
+BEANS -> In Spring, the objects that form the backbone of your application and that are managed by the Spring IoC container are called beans. 
+DATA ACCESS LAYER : communicating with the database
+(1) JDBC -> Spring provides some helper classes to make it much easier to access a database using JDBC. helps us reduce a lot of source code
+(2) ORM -> object relation mapping is a technique or a Design Pattern used to access a relational database from an object-oriented language 
+(3) JMS -> java message service allows you to send a message to message queue
+
+-> MAVEN
+Maven is a project management tool for your app, mainly used for build management & dependencies.
+Problem maven solves -> while building java projects we need additional jar file(java archive a package file format typically used to aggregate 
+many Java class files and associated metadata and resources (text, images, etc.) into one file for distribution).
+Maven helps avoid downloading all jar files manually individually. We give all dependencies and MAVEN downloads jar files for us & it makes 
+these files available at runtime.
+
+MAVEN PROJECT STRUCTURE:
+pom.xml file -> contains all dependencies
+java -> java source code is placed here
+resources directory -> properties file or config file are placed here used by our app
+test directory -> unit testing source code
+target directory -> destination for your compiled code
+
+pom.xml file : contains dependencies, it contains 
+ (1)project metadata(name of project, version)
+ (2)dependencies(list of projects we depend on)
+ (3)plugins
+
+To find dependency coordinates -> //search.maven.org
+
+-> SPRINGBOOT STARTERS
+collection of dependencies tested by spring dev team, makes work easy
+(1) dependency name: spring-boot-starter-web
+this is a collection of maven dependencies, contains other dependencies like spring-web,spring-webmvc, hibernate validator, json, tomcat and so on.
+so developer doesnt have to list all these dependencies as all come in 1 only i.e. spring-boot-starter-web
+
+(2) spring-boot-starter-security
+adding spring security support
+
+(3) spring-boot-starter-data-jpa
+spring database support with jpa & hibernate
+
+-> spring-boot-dev-tools will give automatic reloading when we edit our source code.
+
+-> SPRINGBOOT ACTUATOR
+Exposes endpoints to monitor and manage ur app. Add the dependency and REST endpoints are auto added to ur app.
+No need for extra additional code.
+spring-boot-starter-actuator
+Endpoints example -> /health gives health info of ur app i.e. monitoring app to see ur app is up/down
+/mappings : lists all @RequestMapping paths
+/beans : list of all beans in app
+/info : provides more information of ur app
+ 
+-> RUNNING SPRINGBOOT FROM COMMAND LINE (DO AGAIN)
+Option 1 -> Use java-jar
+Option 2 -> Use springboot maven plugin.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

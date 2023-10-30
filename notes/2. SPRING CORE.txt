@@ -1,0 +1,201 @@
+SPRING CORE
+NOTE: @Component is an annotation that allows Spring to detect our custom beans automatically. In other words, 
+without having to write any explicit code, Spring will: Scan our application for classes annotated with @Component. 
+Instantiate them and inject any specified dependencies into them.
+
+-> Inversion Of Control :  It creates the objects, configures and assembles their dependencies, manages their entire life cycle. 
+The Container uses Dependency Injection(DI) to manage the components that make up the application.
+Spring IoC Container is the core of Spring Framework. It creates the objects, configures and assembles their dependencies, manages their entire life cycle.
+The Container uses Dependency Injection(DI) to manage the components that make up the application. It gets the information about the objects from a 
+configuration file(XML) or Java Code or Java Annotations and Java POJO class. These objects are called Beans. 
+Since the Controlling of Java objects and their lifecycle is not done by the developers, hence the name Inversion Of Control. 
+
+Functions of spring container:
+(1) Create & manage objects
+(2) Dependency injection
+
+To configure spring container, we can do (1)xml configuration file or (2)java annotations or (3)java source code
+mainly java annotations used
+
+-> DEPENDENCY INJECTION (using an object of 1 class in another class without new keyword)
+Eg. When apple builds phone, they borrow different components from diff places/companies. In projects, if an object depends on another object
+when we say  HardDrive obj = new HardDrive()  means we're going for tight-coupling. We inject HardDrive object in our class i.e. DEPENDENCY INJECTION
+CONTAINER , they create object of class HardDrive for you & then inject the object to ur class.
+
+The Spring-Core module is responsible for injecting dependencies through either Constructor or Setter methods. 
+Suppose class One needs the object of class Two to instantiate or operate a method, then class One is said to be dependent on class Two. 
+Now though it might appear okay to depend a module on the other but, in the real world, this could lead to a lot of problems, including system failure. 
+Hence such dependencies need to be avoided.
+
+Spring IOC resolves such dependencies with Dependency Injection, which makes the code easier to test and reuse. 
+Loose coupling between classes can be possible by defining interfaces for common functionality and the injector will instantiate the 
+objects of required implementation. The task of instantiating objects is done by the container according to the configurations specified by the developer.
+
+Dependency injection, on the other hand, is like ordering the pizza from a pizzeria. You don't worry about gathering and preparing the ingredients; 
+instead, the pizzeria delivers the fully prepared pizza to your door.
+
+INJECTION TYPES:
+(1) SETTER INJECTION : use this when u have OPTIONAL dependencies
+(2) CONSTRUCTOR INJECTION : use this when u have REQUIRED dependencies, generally recommended as first choice
+STEPS: Define dependency interface and class, create REST controller, create a constructor in ur class for injections, use @GetMapping.
+
+AUTO-WIRING : Spring looks for class that matches by either class or interface and then spring injects it automatically, hence autowiring.
+
+STEP 1: Define dependency interface and class.
+@Component annotation marks class as a Spring bean(the objects that form the backbone of your application and that are managed by the 
+Spring IoC container are called beans). 
+Spring bean is regular java class managed by spring.
+@Component also makes bean available for dependency injection.
+
+STEP 2: Create demo REST controller. @RestController
+
+STEP 3: Create constructor in ur class for injections.
+Note: @Autowired tells spring to inject a dependency, also if u only have 1 constructor then @Autowired on constructor is optional.
+
+STEP 4: Add @GetMapping
+CODE: 
+@RestController
+public class FunRestController {
+    private Coach mycoach;
+    @Autowired
+    public FunRestController(Coach theCoach){
+        mycoach = theCoach;
+    }
+
+    @GetMapping("/dailywork")
+    public String getdailywork(){
+      return mycoach.getdailywork();
+    }
+}
+
+
+-> Working of Constructor Injection
+Spring will create a new instance of ur interface.
+What about new keyword? -> 
+Spring is mainly for enterprise & real-time/real world apps.
+Spring gives features as database access and transactions, REST API, WEB MVC, SECURITY and so on.
+
+-> Component Scanning
+Spring scans ur java classes for special annotations like @Component or @RestController etc.
+It auto registers beans in spring container.
+
+NOTE: @SpringBootApplication = @EnableAutoConfiguration(enables springboot auto config support)
+ + @ComponentScan(enables component scanning of packages) + @Configuration(import other config classes)
+
+CHANGING PACKAGES:
+When we push our class to a different package, our springboot will scan only our packages classes but it wont scan other package apart from our package
+having the project. For that:
+we need to tell springboot how to find the packages.
+CODE: 
+@SpringBootApplication( scanBasePackages = {"packagename","packagename"} )
+
+-> SETTER INJECTION : when we inject dependencies by calling setter methods on your class.
+STEP 1: Create setter method in ur class for injections, also configure dependency injection with Autowired
+@RestController
+public class MyController {
+    private Coach mycoach;
+    @Autowired
+    public void setCoach(Coach theCoach){
+        mycoach = theCoach;
+    }
+}
+
+-> QUALIFIER ANNOTATION
+The @Qualifier annotation in Spring is used to differentiate a bean among the same type of bean objects.
+@Qualifier annotation(used with @Autowired) which is used to eliminate the issue of which bean needs to be injected.
+ Many classes could be there, using qualifier annotation we can sepcify which we need.
+@Qualifier("cricketCoach") -> means of all classes we need this particular class.
+
+EG. We have an interface Coach, there r 4 classes implementing it. When we inject it to our Controller using setter injection, there  if we dont specify
+that out of 4 classes then error comes. Hence using @Qualifier we can specify class name we wanna use out of all different of them.
+
+NOTE: When u give name to Qualifier, use camelCasing.
+
+-> PRIMARY ANNOTATION  @Primary
+In case of multiple Coach interface implementations, solution was using @Qualifier.
+@Primary says out of the multiple implementations of interface Coach, this class(marked with orimary annotation) will be primary implementation
+we should use.
+Due to it, we wont need to use @Qualifier, as always the primary will only be used.
+
+NOTE: Using @Primary can have only 1 implementations, we cant have multiple class marked @Primary. Error comes i.e. more than 1 primary bean found.
+Although it isnt recommended to use Qualifier and Primary together, but if we use then @Qualifier has higher priority than @Primary.
+Eg. Consider we have a class @Primary marked, and in Controller we also used @Qualifier and gave a different class name, then @Qualifier class
+will be used instead of @Primary.
+
+NOTE: @Qualifier should be used more instead of @Primary as Qualifier is more specific and also has higher priority.
+
+-> LAZY INITIALIZATION @Lazy
+When app starts, by default all beans are initialized. Spring creates instance of each bean and makes them available.
+Using Lazy initialization: a bean will only be specified when (1)its needed for dependency injection or (2)its explicitly requested.
+
+When we use @Lazy with a bean, it will be only initialized if needed for dependency injection.
+It would be hard to make every bean lazy if there are many beans, so there's global method to do lazy:
+In app.pro file -> spring.main.lazy-initialization=true
+this makes all beans lazy, no beans are created until needed including CONTROLLER.
+
+NOTE: Lazy may help with faster start time of app in case of many components present.
+
+If we print constructors of all our component class, all will print but if we use @Lazy with a class it wont be initialized when app starts and
+not print constructor.
+
+-> BEAN SCOPES
+Scope means lifecycle of bean i.e. how long bean lives, how many instances are created etc.
+By default Spring container creates only 1 instance of bean.
+Eg. 
+@RestController
+public class DemoController {
+    private Coach mycoach;
+    private Coach anothercoach;
+    
+    @Autowired
+    public DemoController(@Qualifier("cricketCoach") Coach theCoach,@Qualifier("cricketCoach) Coach theanothercoach{
+        System.out.println("In Constructor: " + getClass().getSimpleName());
+        mycoach = theCoach;
+        anothercoach = theanothercoach;
+    }
+}
+// they reference the same bean i.e. mycoach == anothercoach
+
+-> BEAN LIFECYCLE METHODS
+BEAN LIFECYCLE:
+SPRING CONTAINER STARTED -> BEAN INSTANTIATED -> DEPENDENCIES INJECTED -> INTERNAL SPRING PROCESSING -> YOUR CUSTOM INITIALIZATION METHOD
+-> BEAN IS READY TO USE -> CONTAINER SHUTDOWN -> DESTROY BEAN CALLED
+
+-> JAVA CONFIG BEAN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
