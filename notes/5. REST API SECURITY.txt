@@ -7,8 +7,133 @@ Servlet filters r used to pre-process/post-process web requests.
 Servlet filters can route web requests based on security logic.
 Spring provides a bulk of security functionality with servlet filters.
 
+Servlets are the Java programs that run on the Java-enabled web server or application server. They are used to handle the request obtained 
+from the webserver, process the request, produce the response, then send a response back to the webserver. 
+
+Spring security -> web browser sends request to web resource, site sends back the information. Then in between, Spring Security plays its
+role. Spring Security Filters intercept those requests from browser, pre-processes them & sees if user can actually access them. 
+It looks on app security configs, and also looks at user passwords to see if they are authorised or not.
+
+Spring Security filters checks -> Is web resource protected? 
+-> If yes, then checks if user is authenticated?
+    -> If yes, then checks if user is authorized(do they have permission to access this resource), if no permission then it says ACCESS DENIED, 
+       and if yes then show them the resource.
+    -> If not authenticated, send them back to login form, to authenticate them(i.e. check if user is not a hacker).
+-> If web resource isnt protected, show the resource. 
+
+Security basics:
+(1) Authentication: check user id and pass with credentials stored in app or database.
+(2) Authorization: checks if user has permission to see resource or not.
+
+Two types of Spring Security:
+(1) Declarative Security -> defining security configs, @Configuration. Separate application code & security code i.e. no tension of both getting mixed.
+(2) Programmatic Security -> spring provides API for custom app coding. We can implement our own custom security implementation.
+
+In pom.xml file, dependency will be spring-boot-starter-security.
+We can override default username & password.
+spring.security.user.name = shashank
+spring.security.user.password = 2000
+
+-> After including spring security dependency, when we run our app we see :
+Using generated security password: a595e777-67e3-4879-8620-fd0e46688e6e
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+Note: by default username is user.
+In browser on http://localhost:8080/api/employees  we see login form because of spring security dependency.
+
+NOTE: By this, springboot will automatically secure all endpoints for our app.
+Default username will be user and password will be given to us in console when we run our app.
+To override default username & pass, use spring.security.user.name = shashank & spring.security.user.password = 2000 in app.pro
+
+-> Setting configuration
+Now in our security package, we put users, pass and roles using in-memory authentication.
+
+* Spring Security’s InMemoryUserDetailsManager implements UserDetailsService to provide support for username/password based authentication 
+that is stored in memory. InMemoryUserDetailsManager provides management of UserDetails by implementing the UserDetailsManager interface. 
+UserDetails-based authentication is used by Spring Security when it is configured to accept a username and password for authentication.
+
+When after running our app after giving user details by ourself, we goto postman and test localhost:8080/api/employees
+it gives 401 Unauthorized, which means we're trying to access a secure resource and we didnt give user id & pass.
+SOLUTION -> In Authorization(Postman) , select Basic Auth, then give id and pass eg. john, test123.
+Then if we send get request we see all employees.
+If we give wrong credentials, we get 401 Unauthorized.
+
+-> RESTRICTING ACCESS OF DATA (ADMIN, EMPLOYEE, MANAGER)
+In Spring Security, the .requestMatchers() method is used to define request matching criteria for security rules. 
+It allows you to specify conditions that determine when a particular security rule should be applied to incoming HTTP requests.
+
+requestMatchers(HttpMethod.GET, "/api/employees"): This part of the configuration is specifying the request matching criteria. 
+It means that the security rule defined by this configuration will apply to HTTP GET requests to the "/api/employees" endpoint.
+The HttpMethod.GET is used to filter requests based on the HTTP method. In this case, it applies only to HTTP GET requests.
+
+// .requestMatchers(HttpMethod.GET,"/api/employees"): This part specifies that the
+// following security rule should apply to HTTP GET requests specifically for the
+// "/api/employees" URL.
+// .hasRole("EMPLOYEE"): This part of the configuration specifies that the request
+// should only be allowed if the authenticated user has the "EMPLOYEE" role.
+// In summary, this configuration is ensuring that only users with the "EMPLOYEE" role are allowed to make HTTP GET requests to the "/api/employees" endpoint. If a user doesn't have the "EMPLOYEE" role, they would be denied access to this endpoint. This is a common approach to control access to specific resources in a Spring Security-enabled application.
+
+You can use requestMatchers() to specify different combinations of HTTP methods and URL patterns to target specific types of 
+requests in your application and apply different security rules accordingly. It provides flexibility in configuring fine-grained access 
+control for different parts of your application.
+
+ ALL METHODS :
+ 1) .requestMatchers(HttpMethod.GET,"/api/employees").hasRole("EMPLOYEE")
+ this is for EMPLOYEE to see list of all employees
+ 2) .requestMatchers(HttpMethod.GET,"/api/employees/**").hasRole("EMPLOYEE")
+ this is for EMPLOYEE seeing single employee , /**
+ 3) .requestMatchers(HttpMethod.POST,"/api/employees").hasRole("MANAGER")
+ this is for MANAGER to create an employee
+ 4) .requestMatchers(HttpMethod.GET,"/api/employees").hasRole("EMPLOYEE")
+ this is for MANAGER to update an employee
+ 5) .requestMatchers(HttpMethod.DELETE,"/api/employees/**").hasRole("ADMIN")
+ this is for ADMIN to delete an employee
+
+http.httpBasic(Customizer.withDefaults());
+Meaning: So, the line of code http.httpBasic(Customizer.withDefaults()); is configuring your Spring Security application to use HTTP Basic Authentication 
+with default settings. This means that when a client tries to access a protected resource, they will be prompted to enter their username and password 
+via a standard browser dialog (a basic authentication pop-up). The Customizer.withDefaults() ensures that standard configurations for this authentication 
+mechanism are applied. You can further customize these settings if needed, but this line provides a quick way to enable basic authentication with 
+sensible defaults.
+
+http: This typically refers to the HttpSecurity object in a Spring Security configuration, which is used to define security rules for different endpoints in your application.
+
+httpBasic(): This method is used to configure HTTP Basic Authentication. HTTP Basic Authentication is a simple authentication mechanism where the client sends a username and password with each HTTP request. The server validates these credentials before granting access to the protected resource.
+
+Customizer.withDefaults(): This part is specifying a customizer to configure the HTTP Basic Authentication. Customizer.withDefaults() is a method that provides a set of default configurations for HTTP Basic Authentication, such as setting up the login form, specifying which users have access, and defining the login and logout URLs.
+
+-> CSRF, or Cross-Site Request Forgery, is a type of web security vulnerability that can allow an attacker to trick a user into performing 
+actions on a web application without their knowledge or consent. CSRF attacks typically occur when an authenticated user is tricked into performing 
+a specific action on a web application, such as changing their password or making a financial transaction, without their explicit intention.
+
+Now in postman, using john credentials who is a EMPLOYEE, we can see employees but cant add(403 Forbidden), because john is an EMPLOYEE and he cant 
+add employee, neither he can update one, nor delete.
+Using mary, shes a MANAGER so she can get all, get single employee, add and update employee, but cant delete employee.
+
+userID        password     roles
+john          test123      EMPLOYEE
+mary          test123      EMPLOYEE,MANAGER
+susan         test123      EMPLOYEE,MANAGER,ADMIN
+
+-> SPRING SECURITY WITH USER ACCOUNTS STORED IN DATABASE
+Spring Security has default database schema. 2 tables must be provided -> users & authorities (autorities also means roles)
+the columns should be : for users table -> username,password,enabled
+for authorities table -> username,authority 
+
+NOTE: For roles(authorities) Spring Security internally uses ROLE_ prefix.
+Update Spring Security to use JDBC.
+
+This all for PLAIN TEXT PASSWORD.
+NOTE: AUTHENTICATION is the process of verifying who someone is, whereas AUTHORIZATION is the process of verifying what specific applications, 
+files, and data a user has access to.
+
+GENERATING DATABASE DIAGRAM:
+Database -> Reverse Engineer -> Select Stored Connection
 
 
+
+
+
+-> BCrypt Encryption Password
 
 
 
